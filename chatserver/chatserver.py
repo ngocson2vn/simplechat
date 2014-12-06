@@ -3,12 +3,18 @@ import os
 import sys
 import time
 import socket
+PY3 = sys.version > '3'
 
-# medusa modules
-from chatserver.medusa import text_socket
-from chatserver.medusa import asyncore_25 as asyncore
-from chatserver.medusa import asynchat_25 as asynchat
-from chatserver.medusa.counter import counter
+if PY3:
+    from chatserver.medusa import text_socket
+    from chatserver.medusa import asyncore_25 as asyncore
+    from chatserver.medusa import asynchat_25 as asynchat
+    from chatserver.medusa.counter import counter
+else:
+    from medusa import text_socket
+    from medusa import asyncore_25 as asyncore
+    from medusa import asynchat_25 as asynchat
+    from medusa.counter import counter
 
 
 VERSION_STRING = '1.0'
@@ -31,6 +37,7 @@ class chat_channel(asynchat.async_chat):
         self.in_buffer = ''
         self.creation_time = int(time.time())
         self.set_terminator(None)
+        self.collect_incoming_data("I'm online now!!!\n")
 
     def __repr__(self):
         ar = asynchat.async_chat.__repr__(self)[1:-1]
@@ -46,12 +53,6 @@ class chat_channel(asynchat.async_chat):
             result = asynchat.async_chat.recv(self, buffer_size)
             return result
         except MemoryError:
-            # --- Save a Trip to Your Service Provider ---
-            # It's possible for a process to eat up all the memory of
-            # the machine, and put it in an extremely wedged state,
-            # where medusa keeps running and can't be shut down.  This
-            # is where MemoryError tends to get thrown, though of
-            # course it could get thrown elsewhere.
             sys.exit("Out of Memory!")
 
     def handle_error(self):
@@ -86,7 +87,7 @@ class chat_channel(asynchat.async_chat):
 
 class chat_server(asyncore.dispatcher):
 
-    SERVER_IDENT = 'Chat Server(V%s)' % VERSION_STRING
+    SERVER_IDENT = 'Chat Server (V%s)' % VERSION_STRING
 
     def __init__(self, ip, port, resolver=None, logger_object=None):
         self.ip = ip
@@ -114,12 +115,9 @@ class chat_server(asyncore.dispatcher):
 
         self.server_port = port
         self.total_clients = counter()
-        self.exceptions = counter()
-        self.bytes_out = counter()
-        self.bytes_in  = counter()
 
         self.log_info(
-                'Medusa(V%s) started at %s'
+                'Chat Server (V%s) started at %s'
                 '\n\tHostname: %s'
                 '\n\tPort:%d'
                 '\n' %(
@@ -147,30 +145,13 @@ class chat_server(asyncore.dispatcher):
         try:
             conn, addr = self.accept()
         except socket.error:
-            # linux: on rare occasions we get a bogus socket back from
-            # accept.  socketmodule.c:makesockaddr complains that the
-            # address family is unknown.  We don't want the whole server
-            # to shut down because of this.
             self.log_info('warning: server accept() threw an exception', 'warning')
             return
         except TypeError:
-            # unpack non-sequence.  this can happen when a read event
-            # fires on a listening socket, but when we call accept()
-            # we get EWOULDBLOCK, so dispatcher.accept() returns None.
-            # Seen on FreeBSD3.
             self.log_info('warning: server accept() threw EWOULDBLOCK', 'warning')
             return
 
         chat_channel(self, conn, addr, self.logger)
-
-    def install_handler(self, handler, back=0):
-        if back:
-            self.handlers.append(handler)
-        else:
-            self.handlers.insert(0, handler)
-
-    def remove_handler(self, handler):
-        self.handlers.remove(handler)
 
     def prebind(self, sock, logger_object):
         self.logger = logger_object
@@ -187,13 +168,9 @@ class chat_server(asyncore.dispatcher):
         self.listen(1024)
 
         self.total_clients = counter()
-        self.total_requests = counter()
-        self.exceptions = counter()
-        self.bytes_out = counter()
-        self.bytes_in  = counter()
 
         self.log_info(
-                'Medusa(V%s) started at %s'
+                'Chat Server (V%s) started at %s'
                 '\n\tHostname: %s'
                 '\n\tPort:%s'
                 '\n' %(
@@ -211,7 +188,7 @@ class chat_server(asyncore.dispatcher):
         self.logger.log("%s %s" % (ip, message))
 
 class af_inet_server(chat_server):
-    """ AF_INET version of  Chat server """
+    """ AF_INET version of  Chat Server """
 
     def __init__(self, ip, port, logger_object):
         self.ip = ip
@@ -226,12 +203,8 @@ class af_inet_server(chat_server):
             try:
                 ip = socket.gethostbyname(hostname)
             except socket.error:
-                raise ValueError(
-                    'Could not determine IP address for hostname %s, '
-                    'please try setting an explicit IP address in the "port" '
-                    'setting of your [inet_http_server] section.  For example, '
-                    'instead of "port = 9001", try "port = 127.0.0.1:9001."'
-                    % hostname)
+                raise ValueError('Could not determine IP address for hostname %s' % hostname)
+
         try:
             self.server_name = socket.gethostbyaddr(ip)[0]
         except socket.error:
@@ -240,7 +213,7 @@ class af_inet_server(chat_server):
 
         self.postbind()
 
-def make_server(helpers, chatserverd):
+def make_server(helpers):
     servers = []
     class LogWrapper:
         def log(self, msg):
@@ -252,7 +225,7 @@ def make_server(helpers, chatserverd):
     config = helpers.server_config
     host, port = config['host'], config['port']
     hs = af_inet_server(host, port, logger_object=wrapper)
-    sys.stdout.write("Chat server is listening on port %d\n" % port)
+    sys.stdout.write("Chat Server is listening on port %d\n" % port)
 
     servers.append((config, hs))
 

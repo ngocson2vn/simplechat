@@ -38,7 +38,7 @@ class ChatServer:
 
         while 1:
 
-            self.helpers.broadcast_message()
+            self.helpers.broadcast_messages()
             self.helpers.clear_data_map()
 
             combined_map = {}
@@ -91,7 +91,7 @@ class ChatServer:
 # Main program
 def main():
     assert os.name == "posix", "This code makes Unix-specific assumptions"
-    sys.path.append(os.path.dirname(os.getcwd()))
+    sys.path.append(os.getcwd())
     while 1:
         helpers = Helpers()
         helpers.getopts()
@@ -108,5 +108,5 @@ def main():
         if helpers.mood < ChatServerStates.SHUTDOWN:
             break
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":
     main()

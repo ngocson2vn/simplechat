@@ -4,11 +4,20 @@ import os
 import sys
 import errno
 import signal
+PY3 = sys.version > '3'
 
-from chatserver.medusa import asyncore_25 as asyncore
-from chatserver import poller
-from chatserver import logger
-from chatserver.chatserver import chat_channel
+if PY3:
+    from chatserver import poller
+    from chatserver import logger
+    from chatserver.medusa import asyncore_25 as asyncore
+    from chatserver.chatserver import chat_channel
+    from chatserver.chatserver import make_server
+else:
+    import poller
+    import logger
+    from medusa import asyncore_25 as asyncore
+    from chatserver import chat_channel
+    from chatserver import make_server
 
 VERSION = '1.0'
 
@@ -82,7 +91,7 @@ class Helpers:
 
         if pid != 0:
             # Parent
-            sys.stdout.write("Chat server is daemonized\n")
+            sys.stdout.write("Chat Server is daemonized\n")
             os._exit(0)
 
         # Child
@@ -145,7 +154,7 @@ class Helpers:
 
     def openchatserver(self, chatserverd):
         try:
-            self.chatserver = self.make_chat_server(chatserverd)
+            self.chatserver = self.make_chat_server()
         except socket.error as why:
             if why.args[0] == errno.EADDRINUSE:
                 self.usage('Another program is already listening on '
@@ -164,7 +173,7 @@ class Helpers:
         except ValueError as why:
             self.usage(why.args[0])
 
-    def broadcast_message(self):
+    def broadcast_messages(self):
         for key in asyncore.data_map.keys():
             message = asyncore.data_map[key]
 
@@ -180,6 +189,5 @@ class Helpers:
     def clear_data_map(self):
         asyncore.data_map.clear()
 
-    def make_chat_server(self, chatserverd):
-        from chatserver.chatserver import make_server
-        return make_server(self, chatserverd)
+    def make_chat_server(self):
+        return make_server(self)
