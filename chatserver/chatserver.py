@@ -39,7 +39,7 @@ class chat_channel(asynchat.async_chat):
         self.set_terminator(None)
         self.collect_incoming_data("I'm online now!!!\n")
 
-    def __repr__(self):
+    def repr(self):
         ar = asynchat.async_chat.__repr__(self)[1:-1]
         return '<%s>' %(ar)
 
@@ -127,6 +127,10 @@ class chat_server(asyncore.dispatcher):
                         port,
                         )
                 )
+
+    def repr(self):
+        ar = asyncore.dispatcher.__repr__(self)[1:-1]
+        return '<%s>' %(ar)
 
     def writable(self):
         return 0

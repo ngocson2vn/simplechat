@@ -59,7 +59,7 @@ class ChatServer:
                 if fd in combined_map:
                     try:
                         dispatcher = combined_map[fd]
-                        self.helpers.logger.log('read event caused by %s' % dispatcher)
+                        self.helpers.logger.log('read event caused by %s' % dispatcher.repr())
                         dispatcher.handle_read_event()
                     except asyncore.ExitNow:
                         self.helpers.logger.log("ExitNow\n")
@@ -71,7 +71,7 @@ class ChatServer:
                 if fd in combined_map:
                     try:
                         dispatcher = combined_map[fd]
-                        self.helpers.logger.log('write event caused by %s' % dispatcher)
+                        self.helpers.logger.log('write event caused by %s' % dispatcher.repr())
                         dispatcher.handle_write_event()
                     except asyncore.ExitNow:
                         self.helpers.logger.log("ExitNow\n")

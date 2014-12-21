@@ -350,6 +350,7 @@ class dispatcher:
     def recv(self, buffer_size):
         try:
             data = self.socket.recv(buffer_size)
+            self.logger.log("==> recv data: [%s]" % data[:-2])
             if not data:
                 # a closed connection is indicated by signaling
                 # a read condition, and having recv() return 0.
