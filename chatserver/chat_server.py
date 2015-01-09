@@ -3,19 +3,11 @@ import os
 import sys
 import time
 import socket
-PY3 = sys.version > '3'
 
-if PY3:
-    from chatserver.medusa import text_socket
-    from chatserver.medusa import asyncore_25 as asyncore
-    from chatserver.medusa import asynchat_25 as asynchat
-    from chatserver.medusa.counter import counter
-else:
-    from medusa import text_socket
-    from medusa import asyncore_25 as asyncore
-    from medusa import asynchat_25 as asynchat
-    from medusa.counter import counter
-
+from chatserver.medusa import text_socket
+from chatserver.medusa import asyncore_25 as asyncore
+from chatserver.medusa import asynchat_25 as asynchat
+from chatserver.medusa.counter import counter
 
 VERSION_STRING = '1.0'
 
@@ -148,6 +140,8 @@ class chat_server(asyncore.dispatcher):
         self.total_clients.increment()
         try:
             conn, addr = self.accept()
+            self.logger.log("handle_accept addr = %s" % str(addr))
+            self.logger.log("handle_accept peername = %s" % str(conn.getpeername()))
         except socket.error:
             self.log_info('warning: server accept() threw an exception', 'warning')
             return

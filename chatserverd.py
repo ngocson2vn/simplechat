@@ -91,6 +91,7 @@ class ChatServer:
 # Main program
 def main():
     assert os.name == "posix", "This code makes Unix-specific assumptions"
+    print "cwd: %s" % os.getcwd()
     sys.path.append(os.getcwd())
     while 1:
         helpers = Helpers()

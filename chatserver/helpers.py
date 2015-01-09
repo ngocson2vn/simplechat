@@ -4,20 +4,12 @@ import os
 import sys
 import errno
 import signal
-PY3 = sys.version > '3'
 
-if PY3:
-    from chatserver import poller
-    from chatserver import logger
-    from chatserver.medusa import asyncore_25 as asyncore
-    from chatserver.chatserver import chat_channel
-    from chatserver.chatserver import make_server
-else:
-    import poller
-    import logger
-    from medusa import asyncore_25 as asyncore
-    from chatserver import chat_channel
-    from chatserver import make_server
+from chatserver import poller
+from chatserver import logger
+from chatserver.medusa import asyncore_25 as asyncore
+from chatserver.chat_server import chat_channel
+from chatserver.chat_server import make_server
 
 VERSION = '1.0'
 
